@@ -33,6 +33,11 @@ namespace SportsStore
 
             services.AddTransient<IProductRepository, EFProductRepository>();
             services.AddMvc();
+            
+            // For storing detail of a user's cart in a session state (when data is stored at the server 
+             // and associated with the series of request made by a  user.
+            services.AddMemoryCache(); //Set up the in-memory data store (used for simplicity, will dissapear when app is stop )
+            services.AddSession(); //registers the services used to access session data 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,12 +46,48 @@ namespace SportsStore
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
             app.UseStaticFiles();
+            app.UseSession(); // Automatically enable session state for the app and automatically associate request 
+                               // with sessions when they arrived from the client.
             app.UseMvc(routes => {
+
                 routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Product}/{action=List}/{id?}"
-                    );
-            });
+                name: null,
+                template: "{category}/Page{productPage:int}",
+                defaults: new { controller = "Product", action = "List" }
+                );
+
+                routes.MapRoute(
+                name: null,
+                template: "Page{productPage:int}",
+                defaults: new
+                {
+                    controller = "Product",
+                    action = "List",
+                    productPage = 1
+                }
+                );
+                routes.MapRoute(
+                name: null,
+                template: "{category}",
+                defaults: new
+                {
+                    controller = "Product",
+                    action = "List",
+                    productPage = 1
+                }
+                );
+                routes.MapRoute(
+                name: null,
+                template: "",
+                defaults: new
+                {
+                    controller = "Product",
+                    action = "List",
+                    productPage = 1
+                });
+                routes.MapRoute(name: null, template: "{controller}/{action}/{id?}");
+            
+        });
             SeedData.EnsurePopulated(app);
         }
     }
