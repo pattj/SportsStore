@@ -10,10 +10,12 @@ namespace SportsStore.Controllers
     public class CartController : Controller
     {
         private IProductRepository repository;
+        private Cart cart;
 
-        public CartController(IProductRepository repo)
+        public CartController(IProductRepository repo, Cart cartService)
         {
             repository = repo;
+            cart = cartService;
         }
 
 
@@ -21,7 +23,7 @@ namespace SportsStore.Controllers
         {
             return View(new CartIndexViewModel
             {
-                Cart = GetCart(),
+                Cart = cart,
                 ReturnUrl = returnUrl
             });
         }
@@ -45,9 +47,9 @@ namespace SportsStore.Controllers
             .FirstOrDefault(p => p.ProductID == productId);
             if (product != null)
             {
-                Cart cart = GetCart();
+                 
                 cart.AddItem(product, 1);
-                SaveCart(cart);
+                 
             }
             //Ask browser to request a URL that will call the Index action of this controller
             return RedirectToAction("Index", new { returnUrl });
@@ -60,9 +62,9 @@ namespace SportsStore.Controllers
             .FirstOrDefault(p => p.ProductID == productId);
             if (product != null)
             {
-                Cart cart = GetCart();
+                
                 cart.RemoveLine(product);
-                SaveCart(cart);
+                
             }
             return RedirectToAction("Index", new { returnUrl });
         }
@@ -82,16 +84,6 @@ namespace SportsStore.Controllers
          * 
          */ 
 
-        private Cart GetCart()
-        {
-            //Giving users their own cart and have it be persistent between requests
-            Cart cart = HttpContext.Session.GetJson<Cart>("Cart") ?? new Cart();
-            return cart;
-        }
-        private void SaveCart(Cart cart)
-        {
-            //Adding a cart to the session state in the controller
-            HttpContext.Session.SetJson("Cart", cart);
-        }
+
     }
 }
